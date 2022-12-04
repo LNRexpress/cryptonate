@@ -367,6 +367,7 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
      */
     public void setKeyCodes(Map<String, Integer> keyCodes) {
         this.keyCodes = keyCodes;
+        buildKeyNameDictionary();
     }
 
     /**
