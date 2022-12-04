@@ -61,13 +61,11 @@ public class FieldDecryptionTest {
         Random rng = new SecureRandom();
         VersionedSecretKeyCache secretKeyCache = mockedVersionedSecretKeyCache();
         Map<String, Integer> keyCodes = Collections.singletonMap(SecretKeyFactory.KEY_NAME, 1);
-        Map<String, String> keyNames = Collections.singletonMap("1", SecretKeyFactory.KEY_NAME);
 
         // Build the CryptoEventListener:
         subject = CryptoEventListener.builder()
             .withEncryptionKeyName(SecretKeyFactory.KEY_NAME)
             .withKeyCodes(keyCodes)
-            .withKeyNames(keyNames)
             .withRNG(rng)
             .withVersionedSecretKeyCache(secretKeyCache)
                 .build();

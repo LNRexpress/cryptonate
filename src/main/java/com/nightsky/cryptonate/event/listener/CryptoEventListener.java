@@ -27,6 +27,7 @@ import com.nightsky.keycache.VersionedSecretKey;
 import com.nightsky.keycache.VersionedSecretKeyCache;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.util.HashMap;
 import java.util.Map;
 import javax.crypto.NoSuchPaddingException;
 import org.springframework.core.convert.ConversionService;
@@ -88,7 +89,7 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
 
     private Map<String, Integer> keyCodes;
 
-    private Map<String, String> keyNames;
+    private final Map<String, String> keyNames;
 
     private String encryptionKeyName;
 
@@ -101,6 +102,7 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
     private Random rng;
 
     public CryptoEventListener() {
+        this.keyNames = new HashMap<>();
         securityProviderName = null;
         conversionService = DefaultConversionService.getSharedInstance();
         ConverterSupport.addInternalConverters((DefaultConversionService)conversionService);
@@ -344,6 +346,15 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
             return Cipher.getInstance(CIPHER_ALGORITHM, securityProviderName);
     }
 
+    public void buildKeyNameDictionary() {
+        keyNames.clear();
+
+        for (String keyName : keyCodes.keySet()) {
+            Integer code = keyCodes.get(keyName);
+            keyNames.put(String.format("%d", code), keyName);
+        }
+    }
+
     /**
      * @return the keyCodes
      */
@@ -356,20 +367,6 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
      */
     public void setKeyCodes(Map<String, Integer> keyCodes) {
         this.keyCodes = keyCodes;
-    }
-
-    /**
-     * @return the keyNames
-     */
-    public Map<String, String> getKeyNames() {
-        return keyNames;
-    }
-
-    /**
-     * @param keyNames the keyNames to set
-     */
-    public void setKeyNames(Map<String, String> keyNames) {
-        this.keyNames = keyNames;
     }
 
     /**

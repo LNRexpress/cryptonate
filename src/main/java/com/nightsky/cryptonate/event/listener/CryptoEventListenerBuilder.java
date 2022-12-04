@@ -21,11 +21,6 @@ public class CryptoEventListenerBuilder {
         return this;
     }
 
-    public CryptoEventListenerBuilder withKeyNames(Map<String, String> keyNames) {
-        target.setKeyNames(keyNames);
-        return this;
-    }
-
     public CryptoEventListenerBuilder withEncryptionKeyName(String encryptionKeyName) {
         target.setEncryptionKeyName(encryptionKeyName);
         return this;
@@ -51,6 +46,8 @@ public class CryptoEventListenerBuilder {
 
         if ( rng == null )
             throw new RuntimeException("Random number generator not configured");
+
+        target.buildKeyNameDictionary();
 
         return target;
     }
