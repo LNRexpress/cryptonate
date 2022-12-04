@@ -3,7 +3,6 @@ package com.nightsky.cryptonate.event.listener;
 import com.nightsky.keycache.VersionedSecretKeyCache;
 import java.util.Map;
 import java.util.Random;
-import org.bouncycastle.crypto.fips.FipsSecureRandom;
 
 /**
  *
@@ -42,14 +41,16 @@ public class CryptoEventListenerBuilder {
         return this;
     }
 
+    public CryptoEventListenerBuilder withSecurityProviderName(String name) {
+        target.setSecurityProviderName(name);
+        return this;
+    }
+
     public CryptoEventListener build() {
         Random rng = target.getRng();
 
         if ( rng == null )
             throw new RuntimeException("Random number generator not configured");
-
-        if ( !(rng instanceof FipsSecureRandom) )
-            throw new RuntimeException("Random number generator is not secure and compliant");
 
         return target;
     }

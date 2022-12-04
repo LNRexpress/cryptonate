@@ -1,6 +1,7 @@
 package com.nightsky.cryptonate.event.listener;
 
 import com.nightsky.cryptonate.annotation.Encrypted;
+import com.nightsky.cryptonate.convert.ConverterSupport;
 import com.nightsky.cryptonate.event.Context;
 import com.nightsky.cryptonate.event.HibernatePreInsertEvent;
 import com.nightsky.cryptonate.event.HibernatePreLoadEvent;
@@ -24,8 +25,12 @@ import org.hibernate.event.spi.PreUpdateEvent;
 import org.hibernate.event.spi.PreUpdateEventListener;
 import com.nightsky.keycache.VersionedSecretKey;
 import com.nightsky.keycache.VersionedSecretKeyCache;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Map;
-import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import javax.crypto.NoSuchPaddingException;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 
 /**
  * Encrypts model fields annotated with @Encrypted. I hate having to use a
@@ -89,9 +94,16 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
 
     private VersionedSecretKeyCache versionedSecretKeyCache;
 
+    private String securityProviderName;
+
+    private final ConversionService conversionService;
+
     private Random rng;
 
     public CryptoEventListener() {
+        securityProviderName = null;
+        conversionService = DefaultConversionService.getSharedInstance();
+        ConverterSupport.addInternalConverters((DefaultConversionService)conversionService);
     }
 
     public static CryptoEventListenerBuilder builder() {
@@ -168,7 +180,7 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
             String keyName = keyNames.get(keyCode);
             GCMParameterSpec parameters = new GCMParameterSpec(GCM_TAG_LENGTH * Byte.SIZE, iv);
 
-            Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM, BouncyCastleFipsProvider.PROVIDER_NAME);
+            Cipher cipher = getCipher();
             cipher.init(Cipher.DECRYPT_MODE, versionedSecretKeyCache.getKey(keyName, keyVersion), parameters);
 
             byte[] aad = aadFor(context, field);
@@ -177,10 +189,10 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
 
             byte[] decrypted = cipher.doFinal(cipherInput);
 
-            // TODO:  determine the actual type of the field instead of just using String for everything
-            String dbFieldValue = new String(decrypted, StandardCharsets.UTF_8);
+            // Convert the decrypted data to the actual type of the field
+            Object convertedFieldValue = conversionService.convert(decrypted, field.getType());
 
-            setField(context, field, dbFieldValue);
+            setField(context, field, convertedFieldValue);
         } catch (Exception e) {
             String msg = String.format("Failed to decrypt field: %s.%s", context.getEntity().getClass().getName(), field.getName());
             throw new RuntimeException(msg, e);
@@ -191,7 +203,12 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
         try {
             Object fieldValue = getFieldValue(context, field);
 
-            if ( fieldValue == null || fieldValue.toString() == null || fieldValue.toString().isEmpty() )
+            if ( fieldValue == null )
+                return;
+
+            byte[] rawFieldValue = conversionService.convert(fieldValue, byte[].class);
+
+            if ( rawFieldValue == null || rawFieldValue.length == 0 )
                 return;
 
             // Load the encryption key from the cache
@@ -204,16 +221,15 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
 
             GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * Byte.SIZE, iv);
 
-            Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM, BouncyCastleFipsProvider.PROVIDER_NAME);
+            Cipher cipher = getCipher();
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, parameterSpec);
 
             byte[] aad = aadFor(context, field);
             if ( aad != null && aad.length > 0 )
                 cipher.updateAAD(aad);
 
-            // TODO:  need to detect field type and convert it to a byte[]
             // NOTE: cipher output array contains the ciphered data and the auth tag (concatenated)
-            byte[] cipherOutput = cipher.doFinal(fieldValue.toString().getBytes(StandardCharsets.UTF_8));
+            byte[] cipherOutput = cipher.doFinal(rawFieldValue);
 
             // envelope size = 4 + 4 + iv_length + encrypted_data_length + auth_tag_length
             //               = 4 + 4 + 12 + encrypted_data.length + 16
@@ -319,6 +335,15 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
         return aadBuffer.toString().getBytes(StandardCharsets.UTF_8);
     }
 
+    private Cipher getCipher()
+        throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException
+    {
+        if ( securityProviderName == null )
+            return Cipher.getInstance(CIPHER_ALGORITHM);
+        else
+            return Cipher.getInstance(CIPHER_ALGORITHM, securityProviderName);
+    }
+
     /**
      * @return the keyCodes
      */
@@ -387,6 +412,20 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
      */
     public void setRng(Random rng) {
         this.rng = rng;
+    }
+
+    /**
+     * @return the securityProviderName
+     */
+    public String getSecurityProviderName() {
+        return securityProviderName;
+    }
+
+    /**
+     * @param securityProviderName the securityProviderName to set
+     */
+    public void setSecurityProviderName(String securityProviderName) {
+        this.securityProviderName = securityProviderName;
     }
 
 }

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nightsky</groupId>
     <artifactId>cryptonate</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -14,7 +14,12 @@
         <dependency>
             <groupId>com.nightsky</groupId>
             <artifactId>keycache</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.3.18</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -25,11 +30,6 @@
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
             <version>1.9.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bc-fips</artifactId>
-            <version>1.0.2.3</version>
         </dependency>
         <dependency>
             <groupId>com.github.javafaker</groupId>
