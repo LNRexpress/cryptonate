@@ -108,8 +108,8 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
         ConverterSupport.addInternalConverters((DefaultConversionService)conversionService);
     }
 
-    public static CryptoEventListenerBuilder builder() {
-        return new CryptoEventListenerBuilder();
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -346,7 +346,7 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
             return Cipher.getInstance(CIPHER_ALGORITHM, securityProviderName);
     }
 
-    public void buildKeyNameDictionary() {
+    private void buildKeyNameDictionary() {
         keyNames.clear();
 
         for (String keyName : keyCodes.keySet()) {
@@ -423,6 +423,55 @@ public class CryptoEventListener implements PreLoadEventListener, PreInsertEvent
      */
     public void setSecurityProviderName(String securityProviderName) {
         this.securityProviderName = securityProviderName;
+    }
+
+    public static class Builder {
+
+        private final CryptoEventListener target;
+
+        public Builder() {
+            this.target = new CryptoEventListener();
+        }
+
+        public Builder withKeyCodes(Map<String, Integer> keyCodes) {
+            target.setKeyCodes(keyCodes);
+            return this;
+        }
+
+        public Builder withEncryptionKeyName(String encryptionKeyName) {
+            target.setEncryptionKeyName(encryptionKeyName);
+            return this;
+        }
+
+        public Builder withRNG(Random rng) {
+            target.setRng(rng);
+            return this;
+        }
+
+        public Builder withVersionedSecretKeyCache(VersionedSecretKeyCache cache) {
+            target.setVersionedSecretKeyCache(cache);
+            return this;
+        }
+
+        public Builder withSecurityProviderName(String name) {
+            target.setSecurityProviderName(name);
+            return this;
+        }
+
+        public CryptoEventListener build() {
+            Random rng = target.getRng();
+
+            if ( rng == null )
+                throw new RuntimeException("Random number generator not configured");
+
+            if ( target.getKeyCodes().isEmpty() )
+                throw new RuntimeException("No key codes have been defined");
+
+            target.buildKeyNameDictionary();
+
+            return target;
+        }
+
     }
 
 }
