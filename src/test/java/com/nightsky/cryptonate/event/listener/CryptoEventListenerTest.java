@@ -6,8 +6,8 @@ import com.nightsky.cryptonate.event.HibernatePreInsertEvent;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import javax.persistence.Id;
-import org.apache.commons.lang3.RandomStringUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.hibernate.event.spi.PreInsertEvent;
@@ -65,7 +65,7 @@ public class CryptoEventListenerTest {
     @Test
     public void shouldCreateAadFromIdAndUuidFields() {
         Long id = 12345L;
-        String uuid = RandomStringUtils.randomAlphabetic(32);
+        String uuid = UUID.randomUUID().toString();
         AadWithIdAndUuidEntity entity = new AadWithIdAndUuidEntity(id, uuid);
         Context context = mock(Context.class);
 
@@ -151,7 +151,7 @@ public class CryptoEventListenerTest {
 
         public AadWithIdAndUuidEntity(Long id) {
             this.id = id;
-            this.uuid = RandomStringUtils.randomAlphabetic(32);
+            this.uuid = UUID.randomUUID().toString();
         }
 
         public AadWithIdAndUuidEntity(Long id, String uuid) {
