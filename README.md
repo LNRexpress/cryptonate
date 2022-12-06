@@ -56,6 +56,14 @@ mvn clean install
 
 ### Configuration
 
+#### Disable Translation of Hibernate Validation Constraints into the Database Schema
+
+By default, Hibernate translates domain model validation constraints into the database schema. This feature must be disabled because encrypted columns will have lengths larger than the column's `Size.max` validation constraint. To do this, add the following to your `application.properties` file:
+
+```
+spring.jpa.properties.hibernate.validator.apply_to_ddl=false
+```
+
 #### Spring Boot Configuration
 
 If you are using Spring Boot, you can easily enable and configure the `cryptonate` library by including the `cryptonate-spring-boot-starter` package in your project. This is the recommended method of using the `cryptonate` library as doing so automatically configures the library for use and does not require writing any configuration code.
