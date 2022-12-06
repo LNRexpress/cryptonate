@@ -64,6 +64,8 @@ Please see the [cryptonate-spring-boot-starter](https://github.com/LNRexpress/cr
 
 Be aware that the `cryptonate-spring-boot-starter`  and `cryptonate-spring-boot-autoconfigure` packages declare the Bouncy Castle FIPS-compliant library as one of their dependencies.
 
+An example of how to use `cryptonate` and the `cryptonate-spring-boot-starter` package can be found in the [cryptonate-spring-boot-example](https://github.com/LNRexpress/cryptonate-spring-boot-example) project.
+
 #### Direct Usage Configuration
 
 ##### Create a Random Number Generator
