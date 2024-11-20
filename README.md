@@ -18,7 +18,7 @@ How does `cryptonate` address this drawback? Thankfully, Hibernate makes an enti
 
 ## Requirements
 
-* Java 8 or higher
+* Java 8 or 11. Incompatible with Java 17.
 * Apache Maven 3.6.3 or higher
 * org.hibernate:hibernate-core, version 5.6.7.Final
 * org.springframework:spring-core, version 5.3.18
